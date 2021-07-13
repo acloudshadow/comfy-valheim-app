@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Comfy Valheim App</title>
+<meta charset="UTF-8">
+<script type='text/javascript' src='index.js'></script>
+<script type='text/javascript'>
+  function finalizeDiscordAuth() {
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const state = params.get('state');
+    if (state == null || state !== getCookie('auth_state')) {
+      document.body.innerHTML = 'Invalid auth state';
+      return;
+    }
+    clearCookie('auth_state');
+    setCookie('discord_access_token', params.get('access_token'));
+    document.body.innerHTML = 'Success!';
+    window.location = 'index.html';
+  }
+
+  finalizeDiscordAuth();
+</script>
+</head>
+
+<body>
+Loading...
+</body>
+
+</html>

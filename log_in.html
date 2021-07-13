@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Comfy Valheim App</title>
+<meta charset="UTF-8">
+<script type='text/javascript' src='index.js'></script>
+<script type='text/javascript'>
+  function initiateDiscordAuth() {
+    const state = uuidv4();
+    setCookie('auth_state', state, { maxAge: 60*10 });
+    const url = "https://discord.com/api/oauth2/authorize?response_type=token&"
+      + `client_id=${DISCORD_CLIENT_ID}&state=${state}&scope=identify`;
+    window.location = url;
+  }
+</script>
+</head>
+
+<body>
+<button onclick='initiateDiscordAuth()'>Log in with Discord</button>
+</body>
+
+</html>
