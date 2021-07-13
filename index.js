@@ -1,4 +1,6 @@
 const DISCORD_CLIENT_ID = "864341473637695498";
+const COMFY_VALHEIM_GUILD_ID = "820120530107367435";
+const EXALTED_ROLE_ID = "833814379443126292";
 
 function uuidv4() {
   // https://stackoverflow.com/a/2117523

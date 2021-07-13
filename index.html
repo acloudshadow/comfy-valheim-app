@@ -5,21 +5,28 @@
 <meta charset="UTF-8">
 <script type='text/javascript' src='index.js'></script>
 <script type='text/javascript'>
-  window.onload = () => {
+  window.onload = async () => {
     const discord_access_token = getCookie('discord_access_token');
     if (discord_access_token == null) {
       window.location = 'log_in.html';
-    } else {
-      fetch('https://discord.com/api/oauth2/@me', {
+      return;
+    }
+    try {
+      const identityResp = await fetch('https://discord.com/api/oauth2/@me', {
         headers: {Authorization: `Bearer ${discord_access_token}`}
-      }).then(resp => {
-        resp.json().then(data => {
-          document.body.innerHTML = `Logged in as ${data.user.username}`;
-        })
-      }).catch(err => {
-        console.error(err);
-        document.body.innerHTML = 'Whoops, there was an error :(';
       })
+      const { user } = await identityResp.json();
+      const guildMemberResp = await fetch(`https://discord.com/api/guilds/${COMFY_VALHEIM_GUILD_ID}`
+        + `/members/${user.id}`)
+      const guildMember = await guildMemberResp.json();
+      if (guildMember.roles.includes(EXALTED_ROLE_ID)) {
+        document.body.innerHTML = `Logged in as ${guildMember.nick}, you are exalted!`;
+      } else {
+        document.body.innerHTML = `Logged in as ${guildMember.nick}.`;
+      }
+    } catch (err) {
+      console.error(err);
+      document.body.innerHTML = 'Whoops, there was an error :(';
     }
   }
 </script>
