@@ -5,18 +5,22 @@
 <meta charset="UTF-8">
 <script type='text/javascript' src='index.js'></script>
 <script type='text/javascript'>
-  const discord_access_token = getCookie('discord_access_token');
-  if (discord_access_token == null) {
-    window.location = 'log_in.html';
-  } else {
-    fetch('https://discord.com/api/oauth2/@me', {
-      headers: {Authorization: `Bearer ${discord_access_token}`}
-    }).then(data => {
-      document.body.innerHTML = `Logged in as ${data.user.username}`;
-    }).catch(data => {
-      console.error(data);
-      document.body.innerHTML = 'Whoops, there was an error :(';
-    })
+  window.onload = () => {
+    const discord_access_token = getCookie('discord_access_token');
+    if (discord_access_token == null) {
+      window.location = 'log_in.html';
+    } else {
+      fetch('https://discord.com/api/oauth2/@me', {
+        headers: {Authorization: `Bearer ${discord_access_token}`}
+      }).then(resp => {
+        resp.json().then(data => {
+          document.body.innerHTML = `Logged in as ${data.user.username}`;
+        })
+      }).catch(err => {
+        console.error(err);
+        document.body.innerHTML = 'Whoops, there was an error :(';
+      })
+    }
   }
 </script>
 </head>
