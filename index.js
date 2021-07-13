@@ -9,7 +9,7 @@ function uuidv4() {
 }
 
 function setCookie(key, value, { maxAge } = {}) {
-  let cookie = `${key}=${state}; secure; samesite=strict`;
+  let cookie = `${key}=${value}; secure; samesite=strict`;
   if (maxAge !== undefined) {
     cookie += `; max-age=${maxAge}`;
   }
