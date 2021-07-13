@@ -17,7 +17,9 @@
       })
       const { user } = await identityResp.json();
       const guildMemberResp = await fetch(`https://discord.com/api/guilds/${COMFY_VALHEIM_GUILD_ID}`
-        + `/members/${user.id}`)
+        + `/members/${user.id}`, {
+          headers: {Authorization: `Bearer ${discord_access_token}`}
+        });
       const guildMember = await guildMemberResp.json();
       if (guildMember.roles.includes(EXALTED_ROLE_ID)) {
         document.body.innerHTML = `Logged in as ${guildMember.nick}, you are exalted!`;
