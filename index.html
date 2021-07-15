@@ -3,38 +3,15 @@
 <head>
 <title>Comfy Valheim App</title>
 <meta charset="UTF-8">
+<script type='text/javascript' src='cookie.js'></script>
+<script type='text/javascript' src='components/table.js'></script>
+<script type='text/javascript' src='components/loading.js'></script>
+<script type='text/javascript' src='components/contracts_table.js'></script>
+<script type='text/javascript' src='components/dashboard.js'></script>
 <script type='text/javascript' src='index.js'></script>
-<script type='text/javascript'>
-  window.onload = async () => {
-    const discord_access_token = getCookie('discord_access_token');
-    if (discord_access_token == null) {
-      window.location = 'log_in.html';
-      return;
-    }
-    try {
-      const identityResp = await fetch('https://discord.com/api/oauth2/@me', {
-        headers: {Authorization: `Bearer ${discord_access_token}`}
-      })
-      const { user } = await identityResp.json();
-      const guildMemberResp = await fetch(`https://discord.com/api/guilds/${COMFY_VALHEIM_GUILD_ID}`
-        + `/members/${user.id}`, {
-          headers: {Authorization: `Bearer ${discord_access_token}`}
-        });
-      const guildMember = await guildMemberResp.json();
-      if (guildMember.roles.includes(EXALTED_ROLE_ID)) {
-        document.body.innerHTML = `Logged in as ${guildMember.nick}, you are exalted!`;
-      } else {
-        document.body.innerHTML = `Logged in as ${guildMember.nick}.`;
-      }
-    } catch (err) {
-      console.error(err);
-      document.body.innerHTML = 'Whoops, there was an error :(';
-    }
-  }
-</script>
 </head>
 
-<body>
+<body style='display: flex'>
 Loading...
 </body>
 

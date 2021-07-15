@@ -1,27 +1,32 @@
-const DISCORD_CLIENT_ID = "864341473637695498";
 const COMFY_VALHEIM_GUILD_ID = "820120530107367435";
 const EXALTED_ROLE_ID = "833814379443126292";
+const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/"
+  + "AKfycbw55TUbsrRFKgHSfT_b2HB7xA87P7nbDZrprgtdNiAXp7qnO_ys63slp2z1Olc8eIGuDQ/exec";
 
-function uuidv4() {
-  // https://stackoverflow.com/a/2117523
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
-function setCookie(key, value, { maxAge } = {}) {
-  let cookie = `${key}=${value}; secure; samesite=strict`;
-  if (maxAge !== undefined) {
-    cookie += `; max-age=${maxAge}`;
+window.onload = async () => {
+  const discord_access_token = getCookie('discord_access_token');
+  if (discord_access_token == null) {
+    window.location = 'log_in.html';
+    return;
   }
-  document.cookie = cookie;
-}
-
-function getCookie(key) {
-  return document.cookie.split(";")?.find(x => x.trim().startsWith(key + '='))?.split("=")?.[1];
-}
-
-function clearCookie(key) {
-  document.cookie = `${key}=; max-age=0`;
+  try {
+    const identityResp = await fetch('https://discord.com/api/oauth2/@me', {
+      headers: {Authorization: `Bearer ${discord_access_token}`}
+    })
+    const { user } = await identityResp.json();
+    // const guildMemberResp = await fetch(`https://discord.com/api/guilds/${COMFY_VALHEIM_GUILD_ID}`
+    //   + `/members/${user.id}`, {
+    //     headers: {Authorization: `Bearer ${discord_access_token}`}
+    //   });
+    // const guildMember = await guildMemberResp.json();
+    // if (guildMember.roles.includes(EXALTED_ROLE_ID)) {
+    //   document.body.innerHTML = `Logged in as ${guildMember.nick}, you are exalted!`;
+    // } else {
+    //   document.body.innerHTML = `Logged in as ${guildMember.nick}.`;
+    // }
+    Dashboard(document.body, {username: getCookie('username')});
+  } catch (err) {
+    console.error(err);
+    document.body.innerHTML = 'Whoops, there was an error :(';
+  }
 }

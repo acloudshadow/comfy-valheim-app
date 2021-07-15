@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Comfy Valheim App</title>
+<title>Comfy Valheim App - Finish Setup</title>
 <meta charset="UTF-8">
-<script type='text/javascript' src='index.js'></script>
+<script type='text/javascript' src='cookie.js'></script>
 <script type='text/javascript'>
   function finalizeDiscordAuth() {
     const params = new URLSearchParams(window.location.hash.substring(1));
@@ -14,11 +14,19 @@
     }
     clearCookie('auth_state');
     setCookie('discord_access_token', params.get('access_token'));
-    document.body.innerHTML = 'Success!';
-    window.location = 'index.html';
+    document.body.innerHTML = "Set a username: <input id='username'/>"
+      + "<button onclick='setUsername()'>Submit</button>"
+      + "<br/><br/>(Sorry about the manual input! If there's interest, I could try getting a "
+      + "bot added to the discord server to look up your server nickname)";
   }
 
   window.onload = finalizeDiscordAuth;
+
+  function setUsername() {
+    const username = document.getElementById('username').value;
+    setCookie('username', username);
+    window.location = 'index.html';
+  }
 </script>
 </head>
 
