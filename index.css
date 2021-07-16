@@ -1,0 +1,112 @@
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+#header {
+  width: 11em;
+  flex-shrink: 0;
+  flex-grow: 0;
+  height: 100vh;
+  background-color: darkseagreen;
+  color: darkslategray;
+}
+
+.header-menu-item {
+  padding: 0.75em 0.2em;
+  cursor: pointer;
+}
+
+.header-menu-item:hover {
+  background-color: rgb(95, 158, 160, 50%);
+}
+
+.header-menu-item.active {
+  background-color: cadetblue;
+}
+
+#main {
+  height: 100vh;
+  overflow: hidden;
+}
+
+#contracts-container {
+  height: 100vh;
+  display: flex;
+  padding: 1em;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+#status-filter {
+  margin-bottom: 1em;
+}
+
+#status-filter > input {
+  margin-left: 1em;
+}
+
+#contracts-table {
+  border: solid grey 1px;
+  overflow: auto;
+}
+
+#contracts-table .header {
+  position: sticky;
+  top: 0;
+  background-color: lightsteelblue;
+}
+
+#contracts-table .cell {
+  padding: 0.5em;
+  border-bottom: solid 1px rgba(0, 0, 100, 0.2);
+}
+
+.title {
+  font-size: 28px;
+  padding: 0.5em 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.deleted {
+  display: none;
+}
+
+
+#modal-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#modal-container {
+  max-width: max(50%, 150px);
+  max-height: max(50%, 300px);
+  background-color: white;
+  padding: 1em;
+}
+
+#modal-title-container {
+  display: flex;
+  margin-bottom: 0.5em;
+}
+
+#modal-title {
+  flex-grow: 1;
+  font-size: 28px;
+}
+
+#modal-close {
+  cursor: pointer;
+}
