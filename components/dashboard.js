@@ -6,5 +6,4 @@ function Dashboard(parent, {username}) {
   Header(parent, {username})
   parent.appendChild(main);
   document.getElementById('all-contracts').click()
-  // ContractsTable(main, {username, initialStatuses: ['unclaimed']})
 }

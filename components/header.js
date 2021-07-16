@@ -37,13 +37,21 @@ function Header(parent, {username}) {
   HeaderMenuItem(header, {
     id: 'all-contracts',
     textContent: 'All Contracts',
-    onClick: () => ContractsTable(main, {username, initialStatuses: ['unclaimed']}),
+    onClick: () => ContractsTable(main, {
+      username,
+      initialStatuses: ['unclaimed'],
+      title: "All Contracts",
+    }),
   });
 
   HeaderMenuItem(header, {
     id: 'my-owned-contracts',
     textContent: 'My Owned Contracts',
-    onClick: () => ContractsTable(main, {username, filters: {owner: username}}),
+    onClick: () => ContractsTable(main, {
+      username,
+      filters: {owner: username},
+      title: "My Owned Contracts",
+    }),
   });
 
   HeaderMenuItem(header, {
@@ -52,7 +60,8 @@ function Header(parent, {username}) {
     onClick: () => ContractsTable(main, {
       username,
       filters: {claimedBy: username},
-      excludeStatusFilterNames: ['Unclaimed']
+      excludeStatusFilterNames: ['Unclaimed'],
+      title: "My Claimed Contracts",
     }),
   });
 

@@ -8,6 +8,7 @@ async function ContractsTable(parent, {
   filters = {},
   initialStatuses = ['unclaimed', 'in-progress', 'completed'],
   excludeStatusFilterNames = [],
+  title,
 } = {}) {
   Loading(parent);
 
@@ -44,7 +45,7 @@ async function ContractsTable(parent, {
 
   const container = document.createElement('div');
   container.setAttribute('id', 'contracts-container');
-  container.innerHTML = '<div class="title">All Contracts</div>';
+  container.innerHTML = `<div class="title">${title}</div>`;
   StatusFilter(container, {initialStatuses, excludeStatusFilterNames});
   container.appendChild(table);
 
