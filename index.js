@@ -1,7 +1,7 @@
 const COMFY_VALHEIM_GUILD_ID = "820120530107367435";
 const EXALTED_ROLE_ID = "833814379443126292";
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/"
-  + "AKfycbybTGEoJ8NGQ2IP3ZxiHdh188CflNeiJJqSWHAFwb0UWybrVLcODOHr07nKNTDFrKH8Dg"
+  + "AKfycbw1b5FU339otEX38FM4sxXs0RrfiDdlO6o1aLZYtTam7lBOQkU_RSL_0cEEo_8dErriBw"
   + "/exec";
 
 function setUsername() {
