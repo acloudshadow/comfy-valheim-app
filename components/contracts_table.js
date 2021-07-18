@@ -12,7 +12,7 @@ async function ContractsTable(parent, {
 } = {}) {
   Loading(parent);
 
-  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?fn=getAllContracts`)
+  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=contracts`)
   let contracts = await resp.json();
 
   for (let key of Object.keys(filters)) {

@@ -1,7 +1,7 @@
 async function ContractCounts(parent) {
   Loading(parent);
 
-  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?fn=getContractCounts`)
+  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=contracts/counts`)
   let contractCounts = await resp.json();
 
   const table = document.createElement('div')

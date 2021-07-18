@@ -93,7 +93,8 @@ function ActionButtons(parent, {contract, username, exalted}) {
     const deleteAction = document.createElement('button');
     deleteAction.textContent = 'Delete';
     deleteAction.addEventListener('click', () => postUpdate(
-      {fn: 'deleteContract', args: [contract.rowNum]},
+      `contracts/${contract.rowNum}/delete`,
+      {},
       {username, exalted, isDelete: true},
     ));
     parent.appendChild(deleteAction);
@@ -112,7 +113,8 @@ function ActionButtons(parent, {contract, username, exalted}) {
     unclaimAction.textContent = 'Unclaim';
     unclaimAction.addEventListener('click',
       () => postUpdate(
-        {fn: 'claimContract', args: [contract.rowNum, '']},
+        `contracts/${contract.rowNum}/claim`,
+        {username: ''},
         {username, exalted},
       ));
     parent.appendChild(unclaimAction);
@@ -123,7 +125,8 @@ function ActionButtons(parent, {contract, username, exalted}) {
     claimAction.textContent = 'Claim';
     claimAction.addEventListener('click',
       () => postUpdate(
-        {fn: 'claimContract', args: [contract.rowNum, username]},
+        `contracts/${contract.rowNum}/claim`,
+        {username},
         {username, exalted},
       ));
     parent.appendChild(claimAction);
@@ -134,9 +137,9 @@ function ActionButtons(parent, {contract, username, exalted}) {
   }
 }
 
-async function postUpdate(body, {username, exalted, isDelete}) {
+async function postUpdate(route, body, {username, exalted, isDelete}) {
   const resp = await fetch(
-    `${GOOGLE_APPS_SCRIPT_URL}`,
+    `${GOOGLE_APPS_SCRIPT_URL}?path=${route}`,
     {method: 'POST', body: JSON.stringify(body)},
   )
   if (resp.status !== 200) {
