@@ -12,6 +12,6 @@ function initiateDiscordAuth() {
   const state = uuidv4();
   setCookie('auth_state', state, { maxAge: 60*10 });
   const url = "https://discord.com/api/oauth2/authorize?response_type=token&"
-    + `client_id=${DISCORD_CLIENT_ID}&state=${state}&scope=identify%20guilds%20bot`;
+    + `client_id=${DISCORD_CLIENT_ID}&state=${state}&scope=identify`;
   window.location = url;
 }

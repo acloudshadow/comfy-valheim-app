@@ -22,7 +22,7 @@ function HeaderMenuItem(parent, {id, textContent, onClick}) {
     parent.appendChild(item)
 }
 
-function Header(parent, {username}) {
+function Header(parent, {username, exalted}) {
   const header = document.createElement('div');
   header.setAttribute('id', 'header');
   header.insertAdjacentHTML('beforeend', `
@@ -39,6 +39,7 @@ function Header(parent, {username}) {
     textContent: 'All Contracts',
     onClick: () => ContractsTable(main, {
       username,
+      exalted,
       initialStatuses: ['unclaimed'],
       title: "All Contracts",
     }),
@@ -49,6 +50,7 @@ function Header(parent, {username}) {
     textContent: 'My Owned Contracts',
     onClick: () => ContractsTable(main, {
       username,
+      exalted,
       filters: {owner: username},
       title: "My Owned Contracts",
     }),
@@ -59,6 +61,7 @@ function Header(parent, {username}) {
     textContent: 'My Claimed Contracts',
     onClick: () => ContractsTable(main, {
       username,
+      exalted,
       filters: {claimedBy: username},
       excludeStatusFilterNames: ['Unclaimed'],
       title: "My Claimed Contracts",
