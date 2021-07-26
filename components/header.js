@@ -74,6 +74,12 @@ function Header(parent, {username, exalted}) {
     onClick: () => ContractCounts(main),
   });
 
+  HeaderMenuItem(header, {
+    id: 'merchants',
+    textContent: 'Merchants',
+    onClick: () => MerchantsList(main),
+  })
+
   parent.innerHTML = '';
   parent.appendChild(header);
 }

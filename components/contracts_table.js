@@ -32,19 +32,16 @@ async function ContractsTable(parent, {
   ];
 
   const table = document.createElement('div')
-  table.setAttribute('id', 'contracts-table');
-  table.style = `
-      display:grid;
-      grid-template-columns: 1fr 6.5em 6.5em 6.5em 9em 9em 5em;
-      grid-template-rows: repeat(auto-fill, auto)
-  `
+  table.setAttribute('class', 'table');
+  table.style = `grid-template-columns: 1fr 6.5em 6.5em 6.5em 9em 9em 5em;`
+
   headers.forEach(header => table.insertAdjacentHTML('beforeend', `
     <div class="header cell">${header}</div>
   `));
   contracts.forEach(contract => ContractRow(table, {contract, initialStatuses, username, exalted}));
 
   const container = document.createElement('div');
-  container.setAttribute('id', 'contracts-container');
+  container.setAttribute('id', 'inner-main');
   if (exalted) {
     const newContractButton = document.createElement('button');
     newContractButton.textContent = 'New Contract';

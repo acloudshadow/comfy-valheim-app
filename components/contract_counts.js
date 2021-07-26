@@ -5,13 +5,8 @@ async function ContractCounts(parent) {
   let contractCounts = await resp.json();
 
   const table = document.createElement('div')
-  table.setAttribute('id', 'contracts-table');
-  table.style = `
-      display:grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(auto-fill, auto)
-
-  `
+  table.setAttribute('class', 'table');
+  table.style = `grid-template-columns: repeat(8, 1fr);`
   table.insertAdjacentHTML('beforeend', `
     <div class="header cell" style="
       grid-row-end: span 2;border-right: solid 1px gray; display: flex; align-items: center;
@@ -46,7 +41,7 @@ async function ContractCounts(parent) {
   }
 
   const container = document.createElement('div');
-  container.setAttribute('id', 'contracts-container');
+  container.setAttribute('id', 'inner-main');
   container.innerHTML = '<div class="title">Contract Count Summary</div>';
   container.appendChild(table);
 
