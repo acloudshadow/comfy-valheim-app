@@ -40,6 +40,15 @@ body {
   flex-direction: column;
 }
 
+#contracts-title-container {
+  display: flex;
+  align-items: center;
+}
+
+#contracts-title-container .title {
+  flex-grow: 1;
+}
+
 #status-filter {
   margin-bottom: 1em;
 }

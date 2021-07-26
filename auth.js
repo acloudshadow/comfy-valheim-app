@@ -1,4 +1,3 @@
-const ENV = "dev";
 const COMFY_VALHEIM_GUILD_ID = ENV === 'dev' ? "850001189428920320" : "820120530107367435";
 const EXALTED_ROLE_ID = ENV === 'dev' ? "866449001507192873": "833814379443126292";
 const DISCORD_BOT_PROXY_URL = "https://comfy.acloudshadow.repl.co";

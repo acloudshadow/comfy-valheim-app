@@ -1,10 +1,12 @@
 function loadDashbard() {
   try {
+    const username = getCookie('username');
     Dashboard(
       document.body,
       {
-        username: getCookie('username'),
+        username,
         exalted: getCookie('exalted', {bool: true}),
+        initialRender: (main) => NewContract(main, {username}),
       }
     );
   } catch (err) {

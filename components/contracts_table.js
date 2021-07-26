@@ -45,7 +45,21 @@ async function ContractsTable(parent, {
 
   const container = document.createElement('div');
   container.setAttribute('id', 'contracts-container');
-  container.innerHTML = `<div class="title">${title}</div>`;
+  if (exalted) {
+    const newContractButton = document.createElement('button');
+    newContractButton.textContent = 'New Contract';
+    newContractButton.addEventListener('click', () => {
+      window.location = 'new_contract.html';
+    })
+    const titleContainer = document.createElement('div');
+    titleContainer.setAttribute('id', 'contracts-title-container');
+    titleContainer.innerHTML = `<div class="title">${title}</div>`;
+    titleContainer.appendChild(newContractButton);
+    container.appendChild(titleContainer);
+  } else {
+    container.innerHTML = `<div class="title">${title}</div>`;
+  }
+
   StatusFilter(container, {initialStatuses, excludeStatusFilterNames});
   container.appendChild(table);
 

@@ -6,8 +6,18 @@ function setCookie(key, value, { maxAge } = {}) {
   document.cookie = cookie;
 }
 
-function getCookie(key) {
-  return document.cookie.split(";")?.find(x => x.trim().startsWith(key + '='))?.split("=")?.[1];
+function getCookie(key, {bool = false} = {}) {
+  value = document.cookie.split(";")?.find(x => x.trim().startsWith(key + '='))?.split("=")?.[1];
+  if (bool) {
+    if (value === 'false') {
+      return false;
+    }
+    if (value !== 'true') {
+      throw Error(`Unexpected value for boolean cookie: ${value}`)
+    }
+    return true;
+  }
+  return value;
 }
 
 function clearCookie(key) {
