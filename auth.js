@@ -1,14 +1,18 @@
-const COMFY_VALHEIM_GUILD_ID = ENV === 'dev' ? "850001189428920320" : "820120530107367435";
-const EXALTED_ROLE_ID = ENV === 'dev' ? "866449001507192873": "833814379443126292";
+const PROD_COMFY_VALHEIM_GUILD_ID = "820120530107367435";
+const STAGING_COMFY_VALHEIM_GUILD_ID = "850001189428920320";
+
+const PROD_EXALTED_ROLE_ID = "833814379443126292";
+const STAGING_EXALTED_ROLE_ID = "866449001507192873";
+
 const DISCORD_BOT_PROXY_URL = "https://comfy.acloudshadow.repl.co";
 
 async function finalizeDiscordAuth() {
   const params = new URLSearchParams(window.location.hash.substring(1));
   const state = params.get('state');
-  if (state == null || state !== getCookie('auth_state')) {
-    document.body.innerHTML = 'Invalid auth state';
-    return;
-  }
+  // if (state == null || state !== getCookie('auth_state')) {
+  //   document.body.innerHTML = 'Invalid auth state';
+  //   return;
+  // }
   clearCookie('auth_state');
   discord_access_token = params.get('access_token');
   setCookie('discord_access_token', discord_access_token);
@@ -19,13 +23,32 @@ async function finalizeDiscordAuth() {
     })
     const { user } = await identityResp.json();
 
-    const guildMemberResp = await fetch(`${DISCORD_BOT_PROXY_URL}/guilds/${COMFY_VALHEIM_GUILD_ID}`
-      + `/members/${user.id}`, {mode: 'cors'});
-    const guildMember = await guildMemberResp.json();
+    if (getCookie('featureFlags')?.split(',').includes('comfyDiscordLookup')) {
+      const guildMemberResp = await fetch(`${DISCORD_BOT_PROXY_URL}/guilds/${COMFY_VALHEIM_GUILD_ID}`
+        + `/members/${user.id}`, {mode: 'cors'});
+      const guildMember = await guildMemberResp.json();
 
-    setCookie('username', parseNickname(guildMember.nick))
-    setCookie('exalted', guildMember.roles.includes(EXALTED_ROLE_ID))
-    window.location = 'index.html';
+      setCookie('username', parseNickname(guildMember.nick))
+      setCookie('exalted', guildMember.roles.includes(EXALTED_ROLE_ID))
+      window.location = 'index.html';
+    } else {
+      const usernameInput = document.createElement('input');
+      usernameInput.setAttribute('value', user.username)
+      const submitButton = document.createElement('button');
+      submitButton.textContent = 'Submit'
+      submitButton.addEventListener('click', (ev) => {
+        setCookie('username', ev.target.value);
+        setCookie('exalted', false);
+        window.location = 'index.html';
+      })
+      document.body.innerHTML =
+        "Please enter your Comfy username as it's used in the merchant contracts spreadsheet:  ";
+      document.body.appendChild(usernameInput);
+      document.body.appendChild(submitButton);
+      document.body.insertAdjacentHTML('beforeend',
+        "<br/><br/>(Hopefully we'll get a Comfy bot soon in order to get this info automatically)");
+    }
+
   } catch (err) {
     console.error(err);
     document.body.innerHTML = 'Whoops, there was an error :(';

@@ -1,4 +1,3 @@
-const ENV = "dev";
-const GOOGLE_APPS_SCRIPT_URL = ENV === 'dev' ? "https://script.google.com/macros/s/"
-  + "AKfycbxjAaH6NHWivAhfoPUMlAPNX2VJbii5Crxb2jABeIuN-BeR82TnQ1FqgkZ9z_hdB5KV0w"
-  + "/exec" : "";
+const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/"
+  + "AKfycby8KfXaKsuJJdVAYI1aps1RIVP0-q3bitlVOU3TZsmj0i7DKEUJY29ftFZpSWCrQSKtxw"
+  + "/exec";
