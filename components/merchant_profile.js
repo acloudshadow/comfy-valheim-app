@@ -11,21 +11,28 @@ function MerchantProfile(parent, merchant) {
     </div>
   `
 
-  numCompletedContractsByOwner = {}
+  const byOwner = {};
   merchant.completedContracts.forEach((contract) => {
-    if (numCompletedContractsByOwner[contract.owner] == undefined) {
-      numCompletedContractsByOwner[contract.owner] = 0;
+    if (byOwner[contract.owner.toLowerCase()] == undefined) {
+      byOwner[contract.owner.toLowerCase()] = {
+        count: 0,
+        usernameVariations: new Set(),
+      };
     }
-    numCompletedContractsByOwner[contract.owner]++;
+    byOwner[contract.owner.toLowerCase()].count++;
+    byOwner[contract.owner.toLowerCase()].usernameVariations.add(contract.owner);
   })
 
   const idk = document.createElement('div')
   idk.setAttribute('class', 'merchant-profile-summary-text');
   idk.innerHTML = 'By Contract Owner: |';
 
-  Object.entries(numCompletedContractsByOwner).sort((a, b) => a[1] < b[1]).forEach(
-    ([owner, num]) => {
-      idk.insertAdjacentHTML('beforeend', ` ${owner}: ${num} |`);
+  Object.values(byOwner).sort((a, b) => a.count < b.count).forEach(
+    ({count, usernameVariations}) => {
+      const username = Array.from(usernameVariations).sort((a, b) => {
+        return countUpperCaseChars(a) < countUpperCaseChars(b);
+      })[0]
+      idk.insertAdjacentHTML('beforeend', ` ${username}: ${count} |`);
   })
   container.appendChild(idk)
   container.insertAdjacentHTML('beforeend', '<div class="merchant-profile-summary-text"/>')
@@ -61,4 +68,8 @@ function MerchantProfile(parent, merchant) {
   })
 
   container.appendChild(table);
+}
+
+function countUpperCaseChars(s) {
+  return s.split('').filter(c => c === c.toUpperCase()).length;
 }
