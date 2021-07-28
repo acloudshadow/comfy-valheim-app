@@ -1,16 +1,13 @@
-function loadDashbard() {
-  try {
-    Dashboard(
-      document.body,
-      {
-        username: getCookie('username'),
-        exalted: getCookie('exalted', {bool: true}),
-      }
-    );
-  } catch (err) {
-    console.error(err);
-    document.body.innerHTML = 'Whoops, there was an error :(';
-  }
+const onPushStateCallbacks = [];
+
+function onPushState(callback) {
+  onPushStateCallbacks.push(callback);
+}
+
+const originalPushState = window.history.pushState;
+window.history.pushState = (...args) => {
+  originalPushState.call(window.history, ...args);
+  onPushStateCallbacks.forEach(callback => callback());
 }
 
 window.onload = async () => {
@@ -19,5 +16,21 @@ window.onload = async () => {
     window.location = 'log_in.html';
     return;
   }
-  loadDashbard();
+  const dashboard = new Dashboard(
+    {
+      username: getCookie('username'),
+      exalted: getCookie('exalted', {bool: true}),
+    }
+  );
+
+  const renderDashboard = () => {
+    dashboard.render(
+      document.body,
+      {pathParts: window.location.pathname.split('/').filter(x => x !== '')},
+    )
+  }
+
+  window.onpopstate = renderDashboard;
+  onPushState(renderDashboard);
+  renderDashboard();
 }
