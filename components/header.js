@@ -23,7 +23,7 @@ class Header extends Component {
     this.wrapper.innerHTML = `
       <div style="display: flex; align-items: center;  margin: 1em 0">
         <div style="width: 30%; flex-grow: 0; flex-shrink: 0; padding-right: 0.5em; padding-left: 1em;">
-          <img style="width: 100%; border-radius: 100%;" src='/assets/icon.jpg'/>
+          <img style="width: 100%; border-radius: 100%;" src='/comfy-valheim-app/assets/icon.jpg'/>
         </div>
         <div style="text-align:center;">Comfy<br/>Valheim</div>
       </div>
@@ -32,7 +32,7 @@ class Header extends Component {
       if (!ev.target.classList.contains('header-menu-item')) {
         return;
       }
-      window.history.pushState({}, '', `/${ev.target.id}`);
+      window.history.pushState({}, '', `/comfy-valheim-app/${ev.target.id}`);
     });
   }
 

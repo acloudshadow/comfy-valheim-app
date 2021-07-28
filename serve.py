@@ -3,6 +3,9 @@ import socketserver
 from http.server import SimpleHTTPRequestHandler
 
 class MyHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory='../', **kwargs)
+
     def send_error(self, code, message=None):
         if code == 404:
             with open('404.html') as f:

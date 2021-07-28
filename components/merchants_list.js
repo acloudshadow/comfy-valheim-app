@@ -44,7 +44,7 @@ class MerchantRow extends Component {
     this.wrapper.setAttribute('class', 'cell');
     this.wrapper.textContent = username;
     this.wrapper.addEventListener('click', () =>
-      window.history.pushState({}, '', `/merchants/${username}`),
+      window.history.pushState({}, '', `/comfy-valheim-app/merchants/${username}`),
     );
   }
 

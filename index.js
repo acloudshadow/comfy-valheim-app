@@ -22,8 +22,13 @@ window.onload = async () => {
   });
 
   const renderDashboard = () => {
+    const pathParts = window.location.pathname.split('/').filter(x => x !== '');
+    if (pathParts[0] !== 'comfy-valheim-app') {
+      return NotFound(document.body);
+    }
+    pathParts.shift();
     dashboard.render(document.body, {
-      pathParts: window.location.pathname.split('/').filter(x => x !== ''),
+      pathParts,
     });
   };
 
