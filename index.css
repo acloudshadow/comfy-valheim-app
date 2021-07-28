@@ -51,6 +51,7 @@ body {
 }
 
 #status-filter {
+  display: flex;
   margin-bottom: 1em;
 }
 
@@ -65,6 +66,10 @@ body {
   grid-template-rows: repeat(auto-fill, auto);
   border: solid grey 1px;
   overflow: auto;
+}
+
+.table-row {
+  display: contents;
 }
 
 .table .header {

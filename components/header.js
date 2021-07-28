@@ -32,9 +32,7 @@ class Header extends Component {
       if (!ev.target.classList.contains('header-menu-item')) {
         return;
       }
-      if (ev.target.id !== window.location.pathname.substring(1)) {
-        window.history.pushState({}, '', `/${ev.target.id}`);
-      }
+      window.history.pushState({}, '', `/${ev.target.id}`);
     });
   }
 

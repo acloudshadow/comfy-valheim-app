@@ -26,11 +26,11 @@ class Dashboard extends Component {
 
   constructor({ username, exalted }) {
     super();
-    this.main = new Main();
+    this.main = new Main({ username, exalted });
     this.header = new Header(Object.values(headerMenuItemProps));
   }
 
-  update(parent, { username, exalted, pathParts }) {
+  update(parent, { pathParts }) {
     let activeHeaderItemId = pathParts[0];
     if (activeHeaderItemId === undefined || activeHeaderItemId === 'index.html') {
       activeHeaderItemId = 'all-contracts';
@@ -39,27 +39,47 @@ class Dashboard extends Component {
       return NotFound(document.body);
     }
     this.header.render(parent, { activeHeaderItemId });
-    this.main.render(parent, { username, exalted, pathParts });
+    this.main.render(parent, { pathParts });
   }
 }
 
 class Main extends Component {
-  constructor() {
+  constructor({ username, exalted }) {
     super();
     this.wrapper.setAttribute('id', 'main');
-    this.merchants = null;
+    this.contractsTable = new ContractsTable({ username, exalted });
+    this.merchantsList = new MerchantsList();
+    this.contractCounts = new ContractCounts();
+    this.loadingComponent = new Loading();
+    this.state.loading = true;
+    this.state.username = username;
+    this.fetchData();
   }
 
-  async update(parent, { username, exalted, pathParts } = {}) {
-    if (!this.merchants) {
-      const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=merchants`);
-      let merchants = await resp.json();
-      merchants = merchants.filter(merchant => merchant.username != null);
-      merchants = merchants.sort(
-        (a, b) => (a.username > b.username ? 1 : a.username < b.username ? -1 : 0),
-      );
-      this.merchants = merchants;
+  async fetchData() {
+    this.setState({ loading: true });
+    const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=batch/merchants-and-contracts`);
+    const data = await resp.json();
+    const merchantsByUsername = data.merchants;
+    const contracts = data.contracts;
+    let merchants = Object.values(merchantsByUsername);
+    merchants = merchants.filter(merchant => merchant.username != null);
+    merchants = merchants.sort(
+      (a, b) => (a.username > b.username ? 1 : a.username < b.username ? -1 : 0),
+    );
+    const counts = calculateCounts(contracts);
+    this.setState({ merchantsByUsername, merchants, contracts, counts, loading: false });
+  }
+
+  async update(parent, { pathParts } = {}) {
+    if (this.state.loading) {
+      this.loadingComponent.render(this.wrapper);
+      return;
+    } else {
+      this.loadingComponent.remove();
     }
+
+    this.wrapper.innerHTML = '';
 
     switch (pathParts.length) {
       case 1:
@@ -67,35 +87,32 @@ class Main extends Component {
           case undefined:
           case 'index.html':
           case 'all-contracts':
-            ContractsTable(this.wrapper, {
-              username,
-              exalted,
+            this.contractsTable.render(this.wrapper, {
+              contracts: this.state.contracts,
               initialStatuses: ['unclaimed'],
               title: 'All Contracts',
             });
             break;
           case 'my-owned-contracts':
-            ContractsTable(this.wrapper, {
-              username,
-              exalted,
-              filters: { owner: username },
+            this.contractsTable.render(this.wrapper, {
+              contracts: this.state.contracts,
+              filters: { owner: this.state.username },
               title: 'My Owned Contracts',
             });
             break;
           case 'my-claimed-contracts':
-            ContractsTable(this.wrapper, {
-              username,
-              exalted,
-              filters: { claimedBy: username },
+            this.contractsTable.render(this.wrapper, {
+              contracts: this.state.contracts,
+              filters: { claimedBy: this.state.username },
               excludeStatusFilterNames: ['Unclaimed'],
               title: 'My Claimed Contracts',
             });
             break;
           case 'contract-counts':
-            ContractCounts(this.wrapper);
+            this.contractCounts.render(this.wrapper, {allCounts: this.state.counts});
             break;
           case 'merchants':
-            MerchantsList(this.wrapper);
+            this.merchantsList.render(this.wrapper, { merchants: this.state.merchants });
             break;
           default:
             NotFound(document.body);
@@ -104,7 +121,7 @@ class Main extends Component {
         break;
       case 2:
         if (pathParts[0] === 'merchants') {
-          const merchant = this.merchants.find(
+          const merchant = this.state.merchants.find(
             merchant => merchant.username === decodeURIComponent(pathParts[1]),
           );
           if (merchant) {
@@ -117,4 +134,78 @@ class Main extends Component {
         break;
     }
   }
+}
+
+function calculateCounts(contracts) {
+  let counts = {};
+
+  function initCounts(username) {
+    counts[username] = {
+      owned: {
+        unclaimed: 0,
+        inProgress: 0,
+        complete: 0,
+        completedLastTwoWeeks: 0,
+      },
+      claimed: {
+        inProgress: 0,
+        complete: 0,
+        completedLastTwoWeeks: 0,
+      },
+    };
+  }
+
+  const startDate = moveToCutoff(getDateOfSecondPreviousWeekday(0));
+  const dummyClaimedCounts = {
+    unclaimed: 0,
+    inProgress: 0,
+    complete: 0,
+    completedLastTwoWeeks: 0,
+  };
+
+  contracts.forEach(contract => {
+    if (!(contract.owner.toLowerCase() in counts)) {
+      initCounts(contract.owner.toLowerCase());
+    }
+    const ownedCounts = counts[contract.owner.toLowerCase()].owned;
+
+    if (contract.claimedBy && !(contract.claimedBy.toLowerCase() in counts)) {
+      initCounts(contract.claimedBy.toLowerCase());
+    }
+    const claimedCounts = contract.claimedBy
+      ? counts[contract.claimedBy.toLowerCase()].claimed
+      : dummyClaimedCounts;
+
+    const status = contract.dateCompleted
+      ? 'complete'
+      : contract.claimedBy
+        ? 'inProgress'
+        : 'unclaimed';
+    ownedCounts[status]++;
+    claimedCounts[status]++;
+
+    if (contract.dateCompleted && new Date(contract.dateCompleted) > startDate) {
+      ownedCounts.completedLastTwoWeeks++;
+      claimedCounts.completedLastTwoWeeks++;
+    }
+  });
+  return counts;
+}
+
+function getDateOfSecondPreviousWeekday(weekday) {
+  const date = new Date();
+  let dayDiff = date.getUTCDay() - weekday;
+  if (dayDiff <= 0) {
+    dayDiff += 7;
+  }
+  date.setUTCDate(date.getUTCDate() - dayDiff - 7);
+  return date;
+}
+
+function moveToCutoff(date) {
+  date.setUTCHours(6);
+  date.setUTCMinutes(0);
+  date.setUTCSeconds(0);
+  date.setUTCMilliseconds(0);
+  return date;
 }

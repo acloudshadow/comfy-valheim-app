@@ -1,65 +1,119 @@
 function compareLowerCaseTrim(a, b) {
   return a?.toLowerCase().trim() === b?.toLowerCase().trim();
 }
+class ContractsTable extends Component {
+  constructor({ username, exalted }) {
+    super();
+    this.state = { username, exalted };
+    this.wrapper.setAttribute('id', 'inner-main');
+    this.contractsTitleContainer = new ContractsTitleContainer({ exalted });
+    this.wrapper.appendChild(this.contractsTitleContainer.wrapper);
 
-async function ContractsTable(parent, {
-  username,
-  exalted,
-  filters = {},
-  initialStatuses = ['unclaimed', 'in-progress', 'completed'],
-  excludeStatusFilterNames = [],
-  title,
-} = {}) {
-  Loading(parent);
+    this.statusFilter = new StatusFilter();
+    this.wrapper.appendChild(this.statusFilter.wrapper);
 
-  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=contracts`)
-  let contracts = await resp.json();
+    const headers = [
+      'Description',
+      'Date Listed',
+      'Owner',
+      'Claimed By',
+      'Payment',
+      'Date Completed',
+      'Actions',
+    ];
 
-  for (let key of Object.keys(filters)) {
-    contracts = contracts.filter(
-      c => compareLowerCaseTrim(c[key], filters[key])
-    )
+    this.table = document.createElement('div');
+    this.table.setAttribute('class', 'table');
+    this.table.style = `grid-template-columns: 1fr 6.5em 6.5em 6.5em 9em 9em 5em;`;
+
+    headers.forEach(header =>
+      this.table.insertAdjacentHTML(
+        'beforeend',
+        `
+      <div class="header cell">${header}</div>
+    `,
+      ),
+    );
+
+    this.wrapper.appendChild(this.table);
+    this.contractRows = {};
   }
 
-  const headers = [
-    'Description',
-    'Date Listed',
-    'Owner',
-    'Claimed By',
-    'Payment',
-    'Date Completed',
-    'Actions'
-  ];
+  update(
+    parent,
+    {
+      contracts,
+      filters = {},
+      title,
+      initialStatuses = ['unclaimed', 'in-progress', 'completed'],
+      excludeStatusFilterNames,
+    } = {},
+  ) {
+    this.contractsTitleContainer.render(this.wrapper, { title });
+    this.statusFilter.render(this.wrapper, { initialStatuses, excludeStatusFilterNames });
 
-  const table = document.createElement('div')
-  table.setAttribute('class', 'table');
-  table.style = `grid-template-columns: 1fr 6.5em 6.5em 6.5em 9em 9em 5em;`
+    const oldContractRowNums = Object.keys(this.contractRows);
+    const newContractRowNums = contracts.map(contract => contract.rowNum);
 
-  headers.forEach(header => table.insertAdjacentHTML('beforeend', `
-    <div class="header cell">${header}</div>
-  `));
-  contracts.forEach(contract => ContractRow(table, {contract, initialStatuses, username, exalted}));
+    const removedContractRowNums = oldContractRowNums.filter(x => !newContractRowNums.includes(x));
+    removedContractRowNums.forEach(rowNum => {
+      this.contractRows[rowNum].remove();
+      delete this.contractRows[rowNum];
+    });
 
-  const container = document.createElement('div');
-  container.setAttribute('id', 'inner-main');
-  if (exalted) {
-    const newContractButton = document.createElement('button');
-    newContractButton.textContent = 'New Contract';
-    newContractButton.addEventListener('click', () => {
+    const addedContractRowNums = newContractRowNums.filter(x => !oldContractRowNums.includes(x));
+    addedContractRowNums.forEach(rowNum => {
+      const contract = contracts.find(contract => contract.rowNum === rowNum);
+      this.contractRows[rowNum] = new ContractRow({
+        contract,
+        username: this.state.username,
+        exalted: this.state.exalted,
+      });
+    });
+
+    Object.values(this.contractRows).forEach(contractRow => {
+      contractRow.render(this.table, { initialStatuses, filters });
+    });
+  }
+}
+
+class ContractsTitleContainer extends Component {
+  constructor({ exalted }) {
+    super();
+    this.wrapper.setAttribute('id', 'contracts-title-container');
+    this.title = new ContractsTitle();
+    this.wrapper.appendChild(this.title.wrapper);
+    if (exalted) {
+      this.newContractButton = new NewContractButton();
+      this.wrapper.appendChild(this.newContractButton.wrapper);
+    }
+  }
+  update(parent, { title }) {
+    this.title.render(this.wrapper, { title });
+  }
+}
+
+class ContractsTitle extends Component {
+  constructor() {
+    super();
+    this.wrapper.classList.add('title');
+  }
+
+  update(parent, { title }) {
+    this.wrapper.textContent = title;
+  }
+}
+
+class NewContractButton extends Component {
+  static wrapperType = 'button';
+
+  constructor() {
+    super();
+    this.wrapper.textContent = 'New Contract';
+    this.wrapper.addEventListener('click', () => {
       window.location = 'new_contract.html';
-    })
-    const titleContainer = document.createElement('div');
-    titleContainer.setAttribute('id', 'contracts-title-container');
-    titleContainer.innerHTML = `<div class="title">${title}</div>`;
-    titleContainer.appendChild(newContractButton);
-    container.appendChild(titleContainer);
-  } else {
-    container.innerHTML = `<div class="title">${title}</div>`;
+    });
   }
 
-  StatusFilter(container, {initialStatuses, excludeStatusFilterNames});
-  container.appendChild(table);
-
-  parent.innerHTML = '';
-  parent.appendChild(container);
+  update(parent, props) {}
 }

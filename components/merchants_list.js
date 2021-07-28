@@ -1,32 +1,52 @@
-async function MerchantsList(parent) {
-  const container = document.createElement('div');
-  container.setAttribute('id', 'inner-main');
-  container.innerHTML = `<div class='title'>Merchants</div> Loading...`;
-  parent.innerHTML = '';
-  parent.appendChild(container);
+class MerchantsList extends Component {
+  constructor() {
+    super();
+    this.wrapper.setAttribute('id', 'inner-main');
+    this.wrapper.innerHTML = `<div class='title'>Merchants</div>`;
 
-  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=merchants`);
-  let merchants = await resp.json();
-  merchants = merchants.filter(merchant => merchant.username != null);
-  merchants = merchants.sort(
-    (a, b) => (a.username > b.username ? 1 : a.username < b.username ? -1 : 0),
-  );
+    this.table = document.createElement('div');
+    this.table.setAttribute('class', 'table');
+    this.table.setAttribute('id', 'merchants-table');
+    this.table.style = `grid-template-columns: auto`;
+    this.table.innerHTML = "<div class='header cell'>Name</div>";
+    this.wrapper.appendChild(this.table);
+    this.merchantRows = {};
+  }
 
-  const merchantRows = document.createElement('div');
-  merchantRows.setAttribute('class', 'table');
-  merchantRows.setAttribute('id', 'merchants-table');
-  merchantRows.style = `grid-template-columns: auto`;
-  merchantRows.innerHTML = "<div class='header cell'>Name</div>";
-
-  merchants.forEach(merchant => {
-    const merchantRow = document.createElement('div');
-    merchantRow.setAttribute('class', 'cell');
-    merchantRow.textContent = merchant.username;
-    merchantRow.addEventListener('click', () =>
-      window.history.pushState({}, '', `/merchants/${merchant.username}`),
+  update(parent, { merchants }) {
+    const oldMerchantUsernames = Object.keys(this.merchantRows);
+    const newMerchantUsernames = merchants.map(x => x.username);
+    const removedMerchantUsernames = oldMerchantUsernames.filter(
+      x => !newMerchantUsernames.includes(x),
     );
-    merchantRows.appendChild(merchantRow);
-  });
-  container.innerHTML = `<div class='title'>Merchants</div>`;
-  container.appendChild(merchantRows);
+    removedMerchantUsernames.forEach(x => {
+      this.merchantRows[username].remove();
+      delete this.merchantRows[username];
+    });
+
+    const addedMerchantUsernames = newMerchantUsernames.filter(
+      x => !oldMerchantUsernames.includes(x),
+    );
+    addedMerchantUsernames.forEach(x => {
+      const merchant = merchants.find(m => m.username === x);
+      this.merchantRows[x] = new MerchantRow(merchant.username);
+    })
+
+    Object.values(this.merchantRows).forEach(merchantRow => {
+      merchantRow.render(this.table)
+    })
+  }
+}
+
+class MerchantRow extends Component {
+  constructor(username) {
+    super();
+    this.wrapper.setAttribute('class', 'cell');
+    this.wrapper.textContent = username;
+    this.wrapper.addEventListener('click', () =>
+      window.history.pushState({}, '', `/merchants/${username}`),
+    );
+  }
+
+  update(parent, props) {}
 }

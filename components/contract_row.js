@@ -6,70 +6,101 @@ function formatDate(serialized) {
   if (formatted === 'Invalid Date') {
     return serialized;
   }
-  formatted = formatted.substring(formatted.indexOf(" ") + 1);
+  formatted = formatted.substring(formatted.indexOf(' ') + 1);
   return formatted;
 }
 
-function ContractRow(parent, {contract, initialStatuses, username, exalted}) {
-  const status = contract.dateCompleted ? "completed" : contract.claimedBy ? "in-progress" : 'unclaimed';
-  const className = initialStatuses.includes(status) ? 'cell' : "cell hidden";
+class ContractRow extends Component {
+  constructor({ contract, username, exalted }) {
+    super();
+    this.contract = contract;
+    this.wrapper.classList.add('table-row');
+    this.wrapper.setAttribute('id', `contract-${contract.rowNum}`);
 
-  let dateListed = formatDate(contract.dateListed);
-  let dateCompleted = formatDate(contract.dateCompleted);
+    this.status = contract.dateCompleted
+      ? 'completed'
+      : contract.claimedBy
+        ? 'in-progress'
+        : 'unclaimed';
 
-  [
-    [contract.what, 'what'],
-    [dateListed, 'date-listed'],
-    [contract.owner, 'owner'],
-    [contract.claimedBy, 'claimed-by'],
-    [contract.payment, 'payment'],
-    [dateCompleted, 'date-completed'],
-  ].forEach(([value, key]) => parent.insertAdjacentHTML('beforeend', `
-    <div data-status-${status} class="${className}" id="${key}-${contract.rowNum}"}>
-      ${value ? value : '-'}
-    </div>
-  `))
+    this.wrapper.setAttribute(`data-status`, this.status);
 
-  const actions = document.createElement('div');
-  actions.setAttribute('id', `actions-${contract.rowNum}`);
-  actions.setAttribute(`data-status-${status}`, '');
-  actions.setAttribute("class", className);
-  ActionButtons(actions, {contract, username, exalted});
-  parent.appendChild(actions);
-}
+    let dateListed = formatDate(contract.dateListed);
+    let dateCompleted = formatDate(contract.dateCompleted);
 
-
-function updateContract(contract, {username, exalted, isDelete}) {
     [
       [contract.what, 'what'],
-      [contract.dateListed, 'date-listed'],
+      [dateListed, 'date-listed'],
       [contract.owner, 'owner'],
       [contract.claimedBy, 'claimed-by'],
       [contract.payment, 'payment'],
-      [contract.dateCompleted, 'date-completed'],
-    ].forEach(([value, key]) => {
-      console.log(key, contract.rowNum, `${key}-${contract.rowNum}`)
-      const cell = document.getElementById(`${key}-${contract.rowNum}`);
-      if (isDelete) {
-        cell.classList.add('deleted');
-      }
-      updateStatusAttribute(cell, contract)
-      cell.innerHTML = value ? value : '-'
-    })
+      [dateCompleted, 'date-completed'],
+    ].forEach(([value, key]) =>
+      this.wrapper.insertAdjacentHTML(
+        'beforeend',
+        `
+      <div class="cell" id="${key}-${contract.rowNum}"}>
+        ${value ? value : '-'}
+      </div>
+    `,
+      ),
+    );
 
-    const actions = document.getElementById(`actions-${contract.rowNum}`);
-    if (isDelete) {
-      actions.classList.add('deleted');
+    this.wrapper.appendChild(new ActionButtons({ contract, username, exalted }).wrapper);
+  }
+
+  update(parent, {initialStatuses, filters}) {
+    let visible = true;
+    if (!initialStatuses.includes(this.status)) {
+      this.wrapper.classList.add('hidden')
+      this.wrapper.setAttribute('data-hidden-by', 'status')
+      return;
     }
-    updateStatusAttribute(actions, contract);
-    actions.innerHTML = '';
-    ActionButtons(actions, {contract, username, exalted})
+    for (let key of Object.keys(filters)) {
+      if (!compareLowerCaseTrim(this.contract[key], filters[key])) {
+        this.wrapper.classList.add('hidden')
+        this.wrapper.setAttribute('data-hidden-by', 'filters')
+        return;
+      }
+    }
+    this.wrapper.classList.remove('hidden')
+    this.wrapper.removeAttribute('data-hidden-by')
+  }
+}
+
+function updateContract(contract, { username, exalted, isDelete }) {
+  [
+    [contract.what, 'what'],
+    [contract.dateListed, 'date-listed'],
+    [contract.owner, 'owner'],
+    [contract.claimedBy, 'claimed-by'],
+    [contract.payment, 'payment'],
+    [contract.dateCompleted, 'date-completed'],
+  ].forEach(([value, key]) => {
+    const cell = document.getElementById(`${key}-${contract.rowNum}`);
+    if (isDelete) {
+      cell.classList.add('deleted');
+    }
+    updateStatusAttribute(cell, contract);
+    cell.innerHTML = value ? value : '-';
+  });
+
+  const actions = document.getElementById(`actions-${contract.rowNum}`);
+  if (isDelete) {
+    actions.classList.add('deleted');
+  }
+  updateStatusAttribute(actions, contract);
+  actions.innerHTML = '';
+  ActionButtons(actions, { contract, username, exalted });
 }
 
 function updateStatusAttribute(element, contract) {
   const statuses = ['completed', 'in-progress', 'unclaimed'];
-  const status = contract.dateCompleted ? "completed" :
-    contract.claimedBy ? "in-progress" : 'unclaimed';
+  const status = contract.dateCompleted
+    ? 'completed'
+    : contract.claimedBy
+      ? 'in-progress'
+      : 'unclaimed';
 
   let needsAttr = true;
   for (let oldStatus in statuses) {
@@ -87,65 +118,106 @@ function updateStatusAttribute(element, contract) {
   }
 }
 
-function ActionButtons(parent, {contract, username, exalted}) {
-  let addedButtons = false;
-  if (!contract.claimedBy && compareLowerCaseTrim(contract.owner, username)) {
-    const deleteAction = document.createElement('button');
-    deleteAction.textContent = 'Delete';
-    deleteAction.addEventListener('click', () => postUpdate(
-      `contracts/${contract.rowNum}/delete`,
-      {},
-      {username, exalted, isDelete: true},
-    ));
-    parent.appendChild(deleteAction);
-    addedButtons = true;
-    if (contract.claimedBy) {
-      const completeAction = document.createElement('button');
-      completeAction.textContent = 'Complete';
-      completeAction.addEventListener('click', () => {
-        console.log('would complete contract', contract.rowNum);
-      });
-      parent.appendChild(completeAction);
-    }
+class DeleteContract extends Component {
+  static wrapperType = 'button';
+
+  constructor(contractRowNum) {
+    super();
+    this.wrapper.textContent = 'Delete';
+    this.wrapper.addEventListener('click', () =>
+      postUpdate(
+        `contracts/${contractRowNum}/delete`,
+        {},
+        { username, exalted, isDelete: true },
+      ),
+    );
   }
-  if (!contract.dateCompleted && compareLowerCaseTrim(contract.claimedBy, username)) {
-    const unclaimAction = document.createElement('button');
-    unclaimAction.textContent = 'Unclaim';
-    unclaimAction.addEventListener('click',
-      () => postUpdate(
-        `contracts/${contract.rowNum}/claim`,
-        {username: ''},
-        {username, exalted},
-      ));
-    parent.appendChild(unclaimAction);
-    addedButtons = true;
-  }
-  if (!contract.claimedBy && !exalted && !compareLowerCaseTrim(contract.owner, username)) {
-    const claimAction = document.createElement('button');
-    claimAction.textContent = 'Claim';
-    claimAction.addEventListener('click',
-      () => postUpdate(
-        `contracts/${contract.rowNum}/claim`,
-        {username},
-        {username, exalted},
-      ));
-    parent.appendChild(claimAction);
-    addedButtons = true;
-  }
-  if (!addedButtons) {
-    parent.append('-');
-  }
+
+  update(parent, props) {}
 }
 
-async function postUpdate(route, body, {username, exalted, isDelete}) {
-  const resp = await fetch(
-    `${GOOGLE_APPS_SCRIPT_URL}?path=${route}`,
-    {method: 'POST', body: JSON.stringify(body)},
-  )
+class CompleteContract extends Component {
+  static wrapperType = 'button';
+
+  constructor(contractRowNum) {
+    super();
+    this.wrapper.textContent = 'Complete';
+    this.wrapper.addEventListener('click', () => {
+      console.log('would complete contract', contract.rowNum);
+    });
+  }
+
+  update(parent, props) {}
+}
+
+class UnclaimContract extends Component {
+  static wrapperType = 'button';
+
+  constructor(contractRowNum) {
+    super();
+    this.wrapper.textContent = 'Unclaim';
+    this.wrapper.addEventListener('click', () =>
+      postUpdate(`contracts/${contractRowNum}/claim`, { username: '' }, { username, exalted }),
+    );
+  }
+
+  update(parent, props) {}
+}
+
+class ClaimContract extends Component {
+  static wrapperType = 'button';
+
+  constructor(contractRowNum) {
+    super();
+    this.wrapper.textContent = 'Claim';
+    this.wrapper.addEventListener('click', () =>
+      postUpdate(`contracts/${contractRowNum}/claim`, { username }, { username, exalted }),
+    );
+  }
+
+  update(parent, props) {}
+}
+
+class ActionButtons extends Component {
+  constructor({ contract, username, exalted }) {
+    super();
+    this.wrapper.setAttribute('id', `actions-${contract.rowNum}`);
+    this.wrapper.setAttribute(`data-status-${status}`, '');
+    this.wrapper.setAttribute('class', 'cell');
+
+    let hasActions = false;
+    if (!contract.claimedBy && compareLowerCaseTrim(contract.owner, username)) {
+      this.wrapper.appendChild(new DeleteContract(contract.rowNum).wrapper);
+      hasActions = true;
+      if (contract.claimedBy) {
+        this.wrapper.appendChild(new CompleteContract(contract.rowNum).wrapper);
+      }
+    }
+    if (!contract.dateCompleted && compareLowerCaseTrim(contract.claimedBy, username)) {
+      this.wrapper.appendChild(new UnclaimContract(contract.rowNum).wrapper);
+      hasActions = true;
+    }
+    if (!contract.claimedBy && !exalted && !compareLowerCaseTrim(contract.owner, username)) {
+      this.wrapper.appendChild(new ClaimContract(contract.rowNum).wrapper);
+      hasActions = true;
+    }
+    if (!hasActions) {
+      this.wrapper.textContent = '-';
+    }
+  }
+
+  update(parent, props) {}
+}
+
+async function postUpdate(route, body, { username, exalted, isDelete }) {
+  const resp = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?path=${route}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
   if (resp.status !== 200) {
     GenericErrorModal();
   } else {
     const contract = await resp.json();
-    updateContract(contract || {}, {username, exalted, isDelete});
+    updateContract(contract || {}, { username, exalted, isDelete });
   }
 }

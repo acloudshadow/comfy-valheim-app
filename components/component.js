@@ -10,12 +10,18 @@ class Component {
     this.props = null;
   }
 
-  setState(key, value) {
-    if (this.state[key] === value) {
-      return;
+  setState(data) {
+    let updated = false;
+    for (let [key, value] of Object.entries(data)) {
+      if (this.state[key] === value) {
+        continue;
+      }
+      this.state[key] = value;
+      updated = true;
     }
-    this.state[key] = value;
-    this.render(this.parent, this.props);
+    if (updated) {
+      this.render(this.parent, this.props);
+    }
   }
 
   update(parent, props) {
@@ -29,5 +35,32 @@ class Component {
     if (this.wrapper && !parent.contains(this.wrapper)) {
       parent.appendChild(this.wrapper);
     }
+  }
+
+  remove() {
+    if (!this.wrapper) {
+      throw Error(`${this.constructor.name}.remove: Not implemented`);
+    }
+    this.wrapper.remove();
+  }
+
+  updateCollection(itemComponentsById, itemDataById, createComponent, renderComponent) {
+    const oldIds = Object.keys(itemComponentsById);
+    const newIds = Object.keys(itemDataById);
+    const removedIds = oldIds.filter(x => !newIds.includes(x));
+    removedIds.forEach(id => {
+      itemComponentsById[id].remove();
+      delete itemComponentsById[id];
+    });
+
+    const addedIds = newIds.filter(x => !oldIds.includes(x));
+    addedIds.forEach(id => {
+      const data = itemDataById[id];
+      itemComponentsById[id] = createComponent(id, data);
+    });
+
+    Object.entries(itemComponentsById).forEach(([id, component]) => {
+      renderComponent(id, component);
+    });
   }
 }
