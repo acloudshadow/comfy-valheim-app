@@ -82,6 +82,7 @@ class Main extends Component {
     this.wrapper.innerHTML = '';
 
     switch (pathParts.length) {
+      case 0:
       case 1:
         switch (pathParts[0]) {
           case undefined:
